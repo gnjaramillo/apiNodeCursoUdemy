@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const mongooseDelete = require('mongoose-delete') // para borrado logico
+const mongooseDelete = require('mongoose-delete'); // para borrado logico
+const { $where } = require('./storage');
 
 
 const TracksSchema = new mongoose.Schema({
@@ -29,7 +30,7 @@ const TracksSchema = new mongoose.Schema({
             },
             nationality: {
                 type: String
-            },       
+            },     
         
         },
     
@@ -53,10 +54,57 @@ const TracksSchema = new mongoose.Schema({
 
 );
 
+/**
+ * implementar metodo propio con relacion a storage
+ */
 
-TracksSchema.plugin(mongooseDelete, {overrideMethods: 'all'})
+TracksSchema.statics.findAllData = function (){
+    const joinData = this.aggregate([
+        {
+            $lookup:{
+                from: 'storages',
+                localField: 'mediaId', // tracks.mediaId
+                foreignField: '_id', // storage._id
+                as: 'audio'
+            }
+        },
+
+        {
+            $unwind: { path: '$audio', preserveNullAndEmptyArrays: true }
+        }
+    ])
+
+    return joinData; 
+};
+
+TracksSchema.statics.findOneData = function (id){
+    const joinData = this.aggregate([
+        {
+            $match: { 
+                _id: new mongoose.Types.ObjectId(id)             
+            }
+        },
+
+        {
+            $lookup:{
+                from: 'storages',
+                localField: 'mediaId', // tracks.mediaId
+                foreignField: '_id', // storage._id
+                as: 'audio'
+            }
+        },
+
+        {
+            $unwind: { path: '$audio', preserveNullAndEmptyArrays: true }
+        }
+    ])
+
+    return joinData; 
+}
+
+
+TracksSchema.plugin(mongooseDelete, {overrideMethods: 'all'}) // para q en las consultas no me traiga los registros eliminados con soft delete
 module.exports = mongoose.model('Tracks', TracksSchema); 
 
 
 
-// Users es el nombre de la tabla o colección

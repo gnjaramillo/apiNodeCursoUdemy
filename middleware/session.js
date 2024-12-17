@@ -1,7 +1,8 @@
 const { usersModel } = require('../models');
 const {handleHttpError} = require('../utils/handleError')
 const {verifyToken} = require('../utils/handleJwt')
-
+const getproperties = require('../utils/handlePropertiesEngine')
+const propertiesKey = getproperties()
 
 
 const authMiddleware = async (req, res, next) => {
@@ -12,19 +13,23 @@ const authMiddleware = async (req, res, next) => {
             handleHttpError(res, 'not token', 401 );
             return
         }
-
                
         const token = req.headers.authorization.split(' ').pop();
         const datatoken = await verifyToken(token);
         
-        if (!datatoken._id) {
-            handleHttpError(res, 'invalid token', 401 );
+        if (!datatoken) {
+            handleHttpError(res, 'not_payload_data', 401 );
             return
         }
 
-        // para ver quien hace la peticion 
+        const query = {
+            [propertiesKey.id]:datatoken[propertiesKey.id]
+        }  
 
-        const user = await usersModel.findById(datatoken._id)
+
+        // para ver quien hace la peticion 
+        // usamos findOne, metodo comun en mysql y mongo 
+        const user = await usersModel.findOne(query)
         req.user = user
 
         next()

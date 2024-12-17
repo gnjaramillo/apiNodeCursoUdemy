@@ -9,8 +9,7 @@ const StorageSchema = new mongoose.Schema({
     },
     filename:{
         type: String       
-    },
-    
+    },   
 
 }, 
 

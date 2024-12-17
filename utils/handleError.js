@@ -1,6 +1,5 @@
-const handleHttpError = (res, message ='algo sucedio', code= 403 ) => {
-    res.status(code);
-    res.send({error: message});
-}
+const handleHttpError = (res, message = 'Algo sucedió', code = 403) => {
+    res.status(code).send({ error: message });  // Encadenando correctamente el método send después de status
+};
 
-module.exports = {handleHttpError};
+module.exports = { handleHttpError };
